@@ -8,51 +8,42 @@ const Home = () => {
 
 	const username = "olvinvillalobos";
 
-	const getTodos = async () => {
+	const getTodos = () => {
 
-		try {
+		fetch("https://playground.4geeks.com/todo/users/" + username)
+			.then((response) => {
 
-			const response = await fetch(
-				"https://playground.4geeks.com/todo/users/" + username
-			);
+				if (response.status === 404) {
 
-			if (response.status === 404) {
+					createUser();
 
-				createUser();
+					return null;
+				}
 
-				return;
-			}
+				return response.json();
+			})
 
-			const data = await response.json();
+			.then((data) => {
 
-			setTodos(data.todos);
+				if (data) {
 
-		} catch (error) {
+					setTodos(data.todos);
+				}
+			})
 
-			console.log(error);
-		}
+			.catch((error) => console.log(error));
 	};
 
-	const createUser = async () => {
+	const createUser = () => {
 
-		try {
-
-			await fetch(
-				"https://playground.4geeks.com/todo/users/" + username,
-				{
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json"
-					}
-				}
-			);
-
-			getTodos();
-
-		} catch (error) {
-
-			console.log(error);
-		}
+		fetch("https://playground.4geeks.com/todo/users/" + username, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+			}
+		})
+			.then(() => getTodos())
+			.catch((error) => console.log(error));
 	};
 
 	useEffect(() => {
@@ -61,7 +52,7 @@ const Home = () => {
 
 	}, []);
 
-	const addTodo = async () => {
+	const addTodo = () => {
 
 		if (inputValue.trim() === "") return;
 
@@ -70,30 +61,25 @@ const Home = () => {
 			is_done: false
 		};
 
-		try {
-
-			const response = await fetch(
-				"https://playground.4geeks.com/todo/todos/" + username,
-				{
-					method: "POST",
-					body: JSON.stringify(task),
-					headers: {
-						"Content-Type": "application/json"
-					}
-				}
-			);
-
-			if (response.ok) {
-
-				getTodos();
-
-				setInputValue("");
+		fetch("https://playground.4geeks.com/todo/todos/" + username, {
+			method: "POST",
+			body: JSON.stringify(task),
+			headers: {
+				"Content-Type": "application/json"
 			}
+		})
 
-		} catch (error) {
+			.then((response) => {
 
-			console.log(error);
-		}
+				if (response.ok) {
+
+					getTodos();
+
+					setInputValue("");
+				}
+			})
+
+			.catch((error) => console.log(error));
 	};
 
 	const handleKeyDown = (event) => {
@@ -104,48 +90,49 @@ const Home = () => {
 		}
 	};
 
-	const deleteTodo = async (id) => {
+	const deleteTodo = (id) => {
 
-		try {
+		fetch(`https://playground.4geeks.com/todo/todos/${id}`, {
+			method: "DELETE"
+		})
 
-			const response = await fetch(
-				"https://playground.4geeks.com/todo/todos/" + id,
+			.then((response) => {
+
+				console.log(response);
+
+				if (response.ok) {
+
+					const updatedTodos = todos.filter((todo) => {
+						return todo.id !== id;
+					});
+
+					setTodos(updatedTodos);
+				}
+			})
+
+			.catch((error) => console.log(error));
+	};
+
+	const deleteAllTodos = () => {
+
+		const promises = todos.map((todo) => {
+
+			return fetch(
+				`https://playground.4geeks.com/todo/todos/${todo.id}`,
 				{
 					method: "DELETE"
 				}
 			);
+		});
 
-			if (response.ok) {
+		Promise.all(promises)
 
-				getTodos();
-			}
+			.then(() => {
 
-		} catch (error) {
+				setTodos([]);
+			})
 
-			console.log(error);
-		}
-	};
-
-	const deleteAllTodos = async () => {
-
-		try {
-
-			for (let todo of todos) {
-
-				await fetch(
-					"https://playground.4geeks.com/todo/todos/" + todo.id,
-					{
-						method: "DELETE"
-					}
-				);
-			}
-
-			getTodos();
-
-		} catch (error) {
-
-			console.log(error);
-		}
+			.catch((error) => console.log(error));
 	};
 
 	return (
