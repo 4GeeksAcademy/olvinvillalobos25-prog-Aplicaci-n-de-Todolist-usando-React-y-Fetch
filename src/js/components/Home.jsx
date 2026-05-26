@@ -6,54 +6,54 @@ const Home = () => {
 
 	const [todos, setTodos] = useState([]);
 
-	const username = "olvin25";
+	const username = "olvinvillalobos";
 
-	const apiUrl = `https://playground.4geeks.com/todo/users/${username}`;
+	const getTodos = async () => {
 
+		try {
 
-	const createUser = () => {
+			const response = await fetch(
+				"https://playground.4geeks.com/todo/users/" + username
+			);
 
-		fetch(apiUrl, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json"
+			if (response.status === 404) {
+
+				createUser();
+
+				return;
 			}
-		})
-			.then((response) => response.json())
-			.then((data) => {
 
-				console.log(data);
+			const data = await response.json();
 
-				getTodos();
-			})
-			.catch((error) => console.log(error));
+			setTodos(data.todos);
+
+		} catch (error) {
+
+			console.log(error);
+		}
 	};
 
+	const createUser = async () => {
 
-	const getTodos = () => {
+		try {
 
-		fetch(apiUrl)
-			.then((response) => {
-
-				if (response.status === 404) {
-
-					createUser();
+			await fetch(
+				"https://playground.4geeks.com/todo/users/" + username,
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json"
+					}
 				}
+			);
 
-				return response.json();
-			})
-			.then((data) => {
+			getTodos();
 
-				console.log(data);
+		} catch (error) {
 
-				if (data.todos) {
-
-					setTodos(data.todos);
-				}
-			})
-			.catch((error) => console.log(error));
+			console.log(error);
+		}
 	};
-
 
 	useEffect(() => {
 
@@ -61,85 +61,92 @@ const Home = () => {
 
 	}, []);
 
+	const addTodo = async () => {
 
-	const addTodo = () => {
+		if (inputValue.trim() === "") return;
 
 		const task = {
 			label: inputValue,
 			is_done: false
 		};
 
-		fetch(`https://playground.4geeks.com/todo/todos/${username}`, {
-			method: "POST",
-			body: JSON.stringify(task),
-			headers: {
-				"Content-Type": "application/json"
-			}
-		})
-			.then((response) => response.json())
-			.then((data) => {
+		try {
 
-				console.log(data);
+			const response = await fetch(
+				"https://playground.4geeks.com/todo/todos/" + username,
+				{
+					method: "POST",
+					body: JSON.stringify(task),
+					headers: {
+						"Content-Type": "application/json"
+					}
+				}
+			);
+
+			if (response.ok) {
 
 				getTodos();
 
 				setInputValue("");
-			})
-			.catch((error) => console.log(error));
-	};
+			}
 
+		} catch (error) {
+
+			console.log(error);
+		}
+	};
 
 	const handleKeyDown = (event) => {
 
 		if (event.key === "Enter") {
 
-			if (inputValue.trim() !== "") {
-
-				addTodo();
-			}
+			addTodo();
 		}
 	};
 
+	const deleteTodo = async (id) => {
 
-	const deleteTodo = (id) => {
+		try {
 
-		fetch(`https://playground.4geeks.com/todo/todos/${id}`, {
-			method: "DELETE"
-		})
-			.then((response) => response.json())
-			.then((data) => {
+			const response = await fetch(
+				"https://playground.4geeks.com/todo/todos/" + id,
+				{
+					method: "DELETE"
+				}
+			);
 
-				console.log(data);
+			if (response.ok) {
 
-				const updatedTodos = todos.filter((todo) => {
-					return todo.id !== id;
-				});
+				getTodos();
+			}
 
-				setTodos(updatedTodos);
+		} catch (error) {
 
-			})
-			.catch((error) => console.log(error));
+			console.log(error);
+		}
 	};
 
+	const deleteAllTodos = async () => {
 
-	const clearAllTodos = () => {
+		try {
 
-		todos.forEach((todo) => {
+			for (let todo of todos) {
 
-			fetch(`https://playground.4geeks.com/todo/todos/${todo.id}`, {
-				method: "DELETE"
-			})
-				.then((response) => response.json())
-				.then((data) => {
+				await fetch(
+					"https://playground.4geeks.com/todo/todos/" + todo.id,
+					{
+						method: "DELETE"
+					}
+				);
+			}
 
-					console.log(data);
+			getTodos();
 
-					getTodos();
-				})
-				.catch((error) => console.log(error));
-		});
+		} catch (error) {
+
+			console.log(error);
+		}
 	};
-
 
 	return (
 		<div className="container">
@@ -196,15 +203,15 @@ const Home = () => {
 					{todos.length} items left
 				</div>
 
-				<div className="text-center p-3">
+			</div>
 
-					<button
-						className="btn btn-danger"
-						onClick={clearAllTodos}>
-						Delete All
-					</button>
+			<div className="text-center mt-3">
 
-				</div>
+				<button
+					className="btn btn-danger"
+					onClick={deleteAllTodos}>
+					Delete All Tasks
+				</button>
 
 			</div>
 
