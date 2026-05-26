@@ -10,6 +10,7 @@ const Home = () => {
 
 	const apiUrl = `https://playground.4geeks.com/todo/users/${username}`;
 
+
 	const createUser = () => {
 
 		fetch(apiUrl, {
@@ -18,10 +19,7 @@ const Home = () => {
 				"Content-Type": "application/json"
 			}
 		})
-			.then((response) => {
-
-				return response.json();
-			})
+			.then((response) => response.json())
 			.then((data) => {
 
 				console.log(data);
@@ -30,6 +28,7 @@ const Home = () => {
 			})
 			.catch((error) => console.log(error));
 	};
+
 
 	const getTodos = () => {
 
@@ -55,11 +54,13 @@ const Home = () => {
 			.catch((error) => console.log(error));
 	};
 
+
 	useEffect(() => {
 
 		getTodos();
 
 	}, []);
+
 
 	const addTodo = () => {
 
@@ -87,6 +88,7 @@ const Home = () => {
 			.catch((error) => console.log(error));
 	};
 
+
 	const handleKeyDown = (event) => {
 
 		if (event.key === "Enter") {
@@ -98,6 +100,7 @@ const Home = () => {
 		}
 	};
 
+
 	const deleteTodo = (id) => {
 
 		fetch(`https://playground.4geeks.com/todo/todos/${id}`, {
@@ -108,10 +111,16 @@ const Home = () => {
 
 				console.log(data);
 
-				getTodos();
+				const updatedTodos = todos.filter((todo) => {
+					return todo.id !== id;
+				});
+
+				setTodos(updatedTodos);
+
 			})
 			.catch((error) => console.log(error));
 	};
+
 
 	const clearAllTodos = () => {
 
@@ -130,6 +139,7 @@ const Home = () => {
 				.catch((error) => console.log(error));
 		});
 	};
+
 
 	return (
 		<div className="container">
@@ -183,9 +193,7 @@ const Home = () => {
 				</ul>
 
 				<div className="todo-footer">
-
 					{todos.length} items left
-
 				</div>
 
 				<div className="text-center p-3">
